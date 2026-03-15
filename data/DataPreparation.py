@@ -37,7 +37,7 @@ class DataPreparation:
         return full_dataset
 
     def synthetic_data(self, full_dataset):
-        random_minutes = np.random.randint(15, 61, size=len(full_dataset))
+        random_minutes = np.random.randint(10, 46, size=len(full_dataset))
         random_deltas = pd.to_timedelta(random_minutes, unit='m')
         
         full_dataset['Delivered_Datetime'] = full_dataset['Picked_Datetime'] + random_deltas
