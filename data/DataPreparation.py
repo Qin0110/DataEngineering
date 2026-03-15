@@ -6,7 +6,8 @@ class DataPreparation:
     def __init__(self):
         self.train_set = 'train.csv'
         self.test_set = 'test.csv'
-        self.output_csv = 'dataset.csv'
+        self.historical_csv = 'historical_data.csv'
+        self.streaming_csv = 'streaming_dataset.csv'
 
     def combine_dataset(self):
         df_train = pd.read_csv(self.train_set)
@@ -25,8 +26,13 @@ class DataPreparation:
 
         full_dataset = self.combine_date_time(full_dataset)
         full_dataset = self.synthetic_data(full_dataset)
-        
-        full_dataset.to_csv(self.output_csv, index = False)
+
+        split_index = int(len(full_dataset) * 0.30)
+        historical_df = full_dataset.iloc[:split_index]
+        streaming_df = full_dataset.iloc[split_index:]
+
+        historical_df.to_csv(self.historical_csv, index=False)
+        streaming_df.to_csv(self.streaming_csv, index=False)
 
     def combine_date_time(self, full_dataset):
         temp_date_order = full_dataset['Order_Date'].astype(str) + " " + full_dataset['Time_Orderd'].astype(str)

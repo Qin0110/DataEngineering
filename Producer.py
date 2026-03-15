@@ -8,7 +8,7 @@ import json
 class DataStreamer:
     def __init__(self, bootstrap_server = "localhost:9092"):
         self.dataFolder = "data"
-        self.dataset = ["dataset.csv"]
+        self.dataset = ["streaming_dataset.csv"]
         self.bootstrap_server = bootstrap_server
         self.producer = KafkaProducer(
             bootstrap_servers=self.bootstrap_server,
