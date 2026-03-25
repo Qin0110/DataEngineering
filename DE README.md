@@ -1,3 +1,7 @@
+## CHECK HDFS LOCATION
+linux command: `hdfs getconf -confKey fs.defaultFS`
+
+
 zookeeper-server-start.sh $KAFKA\_HOME/config/zookeeper.properties \&
 
 kafka-server-start.sh $KAFKA\_HOME/config/server.properties \&
