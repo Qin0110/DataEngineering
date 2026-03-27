@@ -22,33 +22,81 @@ class DataStreamer:
                 read_csv = csv.DictReader(data_entry)
                 
                 for row in read_csv:
-                    if (count < 100): #Debug use
-                        # print(row)
-
-                        try:
-                            picked_str = row['Picked_Datetime'].strip()
-                            delivered_str = row['Delivered_Datetime'].strip()
-
-                            picked_time = datetime.strptime(f"{picked_str}", "%Y-%m-%d %H:%M:%S")
-                            delivered_time = datetime.strptime(f"{delivered_str}", "%Y-%m-%d %H:%M:%S")
-
-                            time_elapsed = ((delivered_time - picked_time).total_seconds()) / 60
-                            row['Delivery_Time_Elapsed'] = round(time_elapsed, 2)
-                            
-                            if time_elapsed > 30:
-                                target_topic = "Late_Delivery"
-                            else:
-                                target_topic = "Delivered_Succeed"
-                            self.producer.send(target_topic, row)
-
-                        except Exception as e:
-                            print(f"Skipping row {count} due to data format error: {e}")
-                            
+                    if (count < 100):
+                        is_anomaly, anomaly_msg = self.anomaly_data_handling(row)
+                        
+                        if is_anomaly:
+                            try:
+                                row['Anomaly_Reason'] = anomaly_msg
+                                target_topic = "Anomaly_Data"
+                                self.producer.send(target_topic, row)
+                                print(f"Sent row {count + 1} to topic: {target_topic}")
+                                print(f"REASON: {anomaly_msg}")
+                            except Exception as e:
+                                print(f"Skipping row {count + 1} due to data format error: {e}")
+                        
+                        else:
+                            try:
+                                picked_str = row['Picked_Datetime'].strip()
+                                delivered_str = row['Delivered_Datetime'].strip()
+    
+                                picked_time = datetime.strptime(f"{picked_str}", "%Y-%m-%d %H:%M:%S")
+                                delivered_time = datetime.strptime(f"{delivered_str}", "%Y-%m-%d %H:%M:%S")
+    
+                                time_elapsed = ((delivered_time - picked_time).total_seconds()) / 60
+                                row['Delivery_Time_Elapsed'] = round(time_elapsed, 2)
+                                
+                                if time_elapsed > 30:
+                                    target_topic = "Late_Delivery"
+                                else:
+                                    target_topic = "Delivered_Succeed"
+                                self.producer.send(target_topic, row)
+                                print(f"Sent row {count + 1} to topic: {target_topic}")
+    
+                            except Exception as e:
+                                print(f"Skipping row {count + 1} due to data format error: {e}")
+                                
                         time.sleep(0.5)
                         count += 1
-                        print(f"Sent row {count} to topic: {target_topic}")
                         
         self.producer.flush()
+
+    def anomaly_data_handling(self, row):
+        critical_columns = [
+            'Delivery_person_ID',
+            'Restaurant_latitude',
+            'Restaurant_longitude',
+            'Delivery_location_latitude',
+            'Delivery_location_longitude',
+            'Order_DateTime'
+        ]
+        coordinate_columns = [
+            'Restaurant_latitude',
+            'Restaurant_longitude',
+            'Delivery_location_latitude',
+            'Delivery_location_longitude'
+        ]
+        
+        missing_fields = []
+        for column in critical_columns:
+            value = str(row.get(column, "")).strip().upper()
+
+            if not value or value in ["NAN", "NULL", "NONE", "NA"]:
+                missing_fields.append(column)
+                continue
+
+            if column in coordinate_columns:
+                try:
+                    if float(value) == 0.0:
+                        missing_fields.append(f"{column} (Invalid 0.0)")
+                except ValueError:
+                    missing_fields.append(f"{column} (Not a number)")
+
+        if missing_fields:
+            message = f"Missing critical data: {', '.join(missing_fields)}"
+            return True, message
+            
+        return False, "Appropriate Data"
         
 if __name__ == "__main__":
     streamer = DataStreamer()

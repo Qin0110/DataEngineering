@@ -54,6 +54,7 @@ class SparkKafkaConsumer:
         ).select("kafka_topic", "data.*")
 
         parsed_df = parsed_df \
+            .withColumn("Delivery_person_ID", trim(col("Delivery_person_ID"))) \
             .withColumn("Delivery_person_Age", trim(col("Delivery_person_Age")).cast("integer")) \
             .withColumn("Delivery_person_Ratings", trim(col("Delivery_person_Ratings")).cast("double")) \
             .withColumn("Restaurant_latitude", trim(col("Restaurant_latitude")).cast("double")) \
@@ -66,25 +67,36 @@ class SparkKafkaConsumer:
             .withColumn("Delivered_Datetime", to_timestamp(col("Delivered_Datetime"), "yyyy-MM-dd HH:mm:ss")) \
             .withColumn("Delivery_Time_Elapsed", col("Delivery_Time_Elapsed").cast("double"))
 
+        non_critical_string_cols = [
+            "Weatherconditions", 
+            "Road_traffic_density", 
+            "Vehicle_condition", 
+            "Type_of_order", 
+            "Type_of_vehicle", 
+            "Festival", 
+            "City"
+        ]
+        parsed_df = parsed_df.fillna("Unknown", subset=non_critical_string_cols)
+
 
         def route_data_to_storage(batch_df, batch_id):
             batch_df.persist() 
             late_df = batch_df.filter(col("kafka_topic") == "Late_Delivery")
             if not late_df.isEmpty():
                 print(f"Batch {batch_id}: Found LATE deliveries!")
-                late_df.show(3) # Debug print to console
+                late_df.show(3)
                 late_df.write.mode("append").format("parquet").save(self.hdfs_late_path)
 
             success_df = batch_df.filter(col("kafka_topic") == "Delivered_Succeed")
             if not success_df.isEmpty():
                 print(f"Batch {batch_id}: Found SUCCESSFUL deliveries!")
-                success_df.show(3) # Debug print to console
+                success_df.show(3)
                 success_df.write.mode("append").format("parquet").save(self.hdfs_success_path)
 
             batch_df.unpersist()
 
             
-        print(parsed_df.printSchema())
+        parsed_df.printSchema()
         print("Starting Stream...")
 
         '''
@@ -101,5 +113,5 @@ class SparkKafkaConsumer:
         query.awaitTermination()
 
 if __name__ == "__main__":
-    consumer = SparkKafkaConsumer(topic = "Late_Delivery, Delivered_Succeed")
+    consumer = SparkKafkaConsumer(topic = "Late_Delivery,Delivered_Succeed")
     consumer.streams_subscription()
