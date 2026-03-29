@@ -22,7 +22,7 @@ class DataStreamer:
                 read_csv = csv.DictReader(data_entry)
                 
                 for row in read_csv:
-                    if (count < 100):
+                    # if (count < 100):
                         is_anomaly, anomaly_msg = self.anomaly_data_handling(row)
                         
                         if is_anomaly:
@@ -56,7 +56,7 @@ class DataStreamer:
                             except Exception as e:
                                 print(f"Skipping row {count + 1} due to data format error: {e}")
                                 
-                        time.sleep(0.5)
+                        time.sleep(0.1)
                         count += 1
                         
         self.producer.flush()

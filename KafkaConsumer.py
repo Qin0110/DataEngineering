@@ -16,6 +16,7 @@ class SparkKafkaConsumer:
         self.spark.sparkContext.setLogLevel("WARN")
         self.hdfs_success_path = "hdfs://localhost:9000/user/student/delivery_data/success/"
         self.hdfs_late_path = "hdfs://localhost:9000/user/student/delivery_data/late/"
+        self.hdfs_checkpoint_path = "hdfs://localhost:9000/user/student/delivery_data/checkpoint/"
 
     def streams_subscription(self):
         schemas = StructType([
@@ -85,13 +86,13 @@ class SparkKafkaConsumer:
             if not late_df.isEmpty():
                 print(f"Batch {batch_id}: Found LATE deliveries!")
                 late_df.show(3)
-                late_df.write.mode("append").format("parquet").save(self.hdfs_late_path)
+                late_df.drop("kafka_topic").write.mode("append").format("parquet").save(self.hdfs_late_path)
 
             success_df = batch_df.filter(col("kafka_topic") == "Delivered_Succeed")
             if not success_df.isEmpty():
                 print(f"Batch {batch_id}: Found SUCCESSFUL deliveries!")
                 success_df.show(3)
-                success_df.write.mode("append").format("parquet").save(self.hdfs_success_path)
+                success_df.drop("kafka_topic").write.mode("append").format("parquet").save(self.hdfs_success_path)
 
             batch_df.unpersist()
 
@@ -102,12 +103,12 @@ class SparkKafkaConsumer:
         '''
         Format change to "console" to debug
         .option("path", self.hdfs_output_path) \
-            .option("checkpointLocation", self.hdfs_checkpoint_path) \
         '''
          
         query = parsed_df.writeStream \
             .outputMode("append") \
             .foreachBatch(route_data_to_storage) \
+            .option("checkpointLocation", self.hdfs_checkpoint_path) \
             .start()
 
         query.awaitTermination()

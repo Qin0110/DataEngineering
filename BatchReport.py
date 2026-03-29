@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, to_date, date_format, avg, countDistinct, count, round, expr
+from pyspark.sql.functions import col, to_date, date_format, avg, countDistinct, count, round, expr, when, lower, trim
 
 class DeliveryReportGenerator:
     def __init__(self, spark_session):
@@ -22,6 +22,13 @@ class DeliveryReportGenerator:
         ).withColumn(
             "order_month", 
             date_format("Order_DateTime", "yyyy-MM")
+        ).withColumn(
+            "Delivery_person_Ratings",
+            when(
+                col("Delivery_person_Ratings").isNull() |
+                (lower(trim(col("Delivery_person_Ratings").cast("string"))).isin("nan", "na", "null", "")),
+                None
+            ).otherwise(col("Delivery_person_Ratings").cast("double"))
         )
 
         print("--- 1. OVERALL KPI SUMMARY ---")
@@ -52,7 +59,9 @@ class DeliveryReportGenerator:
         rider_analysis.orderBy("avg_rider_rating", ascending=False).show(10, truncate=False)
 
         print("--- 4. BOTTOM 10 LOWEST PERFORMING RIDERS ---")
-        rider_analysis.orderBy("avg_rider_rating", ascending=True).show(10, truncate=False)
+        rider_analysis.filter(col("avg_rider_rating").isNotNull()) \
+                      .orderBy("avg_rider_rating", ascending=True) \
+                      .show(10, truncate=False)
 
         print("--- 5. DAILY TRENDS ---")
         df.groupBy("order_date").agg(
