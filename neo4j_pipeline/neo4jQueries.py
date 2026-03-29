@@ -33,6 +33,7 @@ def run_analytic_queries():
         print("\n--------------------------------- Query 1: Reliable Driver Identifier --------------------------------")
         records_1, _, _ = driver.execute_query(query_1, database_=NEO4J_USERNAME)
         df1 = pd.DataFrame([r.data() for r in records_1])
+        df1.index = df1.index + 1
         print(df1.head(10))
         df1.to_csv('q1_reliable_drivers.csv', index=False)
         print("-> Saved as 'q1_reliable_drivers.csv'")
@@ -40,6 +41,7 @@ def run_analytic_queries():
         print("\n---------------------------------- Query 2: Restaurant Bottlenecks -----------------------------------")
         records_2, _, _ = driver.execute_query(query_2, database_=NEO4J_USERNAME)
         df2 = pd.DataFrame([r.data() for r in records_2])
+        df2.index = df2.index + 1
         print(df2.head(10))
         df2.to_csv("q2_restaurant_bottlenecks.csv", index=False)
         print("-> Saved as 'q2_restaurant_bottlenecks.csv'")
