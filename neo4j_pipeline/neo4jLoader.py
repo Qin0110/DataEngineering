@@ -57,22 +57,26 @@ def run_loader():
             o.status = data.status,
             o.multiple_deliveries = data.multiple,
             o.festival = data.is_festival,
-            o.pickup_lat = data.rest_lat,
-            o.pickup_long = data.rest_long,
             o.type = data.order_type
             
         MERGE (v:Vehicle {type: data.vehicle_type, condition: data.vehicle_condition})
         MERGE (c:City {name: data.city})
+
+        WITH d, o, v, c, data, toString(data.rest_lat) + "," + toString(data.rest_long) AS location_id
+        MERGE (r:Restaurant {id: location_id})
+        SET r.latitude = data.rest_lat, r.longitude = data.rest_long
         
         // RELATIONSHIPS
         MERGE (d)-[:DELIVERED]->(o)
         MERGE (o)-[:DELIVERED_USING]->(v) 
         MERGE (o)-[:DELIVERED_IN]->(c)
+        MERGE (o)-[:PICKED_UP_FROM]->(r)
     """
     index_queries = [
         "CREATE INDEX FOR (d:DeliveryPerson) ON (d.id);",
         "CREATE INDEX FOR (o:Order) ON (o.id);",
-        "CREATE INDEX FOR (c:City) ON (c.name);"
+        "CREATE INDEX FOR (c:City) ON (c.name);",
+        "CREATE INDEX FOR (r:Restaurant) ON (r.id);"
     ]
 
     with get_db_connection() as driver:
