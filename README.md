@@ -1,6 +1,9 @@
 ## CHECK HDFS LOCATION
 linux command: `hdfs getconf -confKey fs.defaultFS`
 
+start-dfs.sh
+
+start-yarn.sh
 
 zookeeper-server-start.sh $KAFKA\_HOME/config/zookeeper.properties \&
 
@@ -12,7 +15,7 @@ kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 
 
 kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic Delivered\_Succeed
 
-
+kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic Anomaly_Data
 
 
 
@@ -25,30 +28,4 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("ReadParquet").getOrCreate()
 
 
-
-\# Point Spark at the entire folder, not just one file!
-
-\# Spark will automatically combine all the part-0000.parquet files inside it.
-
-
-
-hdfs\_df\_success = spark.read.parquet("hdfs://localhost:9000/user/student/delivery\_data/success/")
-
-hdfs\_df\_late = spark.read.parquet("hdfs://localhost:9000/user/student/delivery\_data/late/")
-
-
-
-
-
-hdfs\_df\_success.show(5)
-
-hdfs\_df\_success.printSchema()
-
-
-
-
-
-hdfs\_df\_late.show(5)
-
-hdfs\_df\_late.printSchema()
-
+hdfs_df = spark.read.parquet("hdfs://localhost:9000/user/student/delivery_data/curated_data/master_curated_data.parquet")
