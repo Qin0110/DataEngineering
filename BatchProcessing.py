@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, trim, lower, when, avg
+from pyspark.sql.functions import col, trim, lower, when, avg, upper
 from BatchReport import DeliveryReportGenerator
 
 class BatchProcessing:
@@ -15,16 +15,35 @@ class BatchProcessing:
             "Festival",
             "City"
         ]
-        self.numerical_columns = [
+        # self.numerical_columns = [
+        #     "ID",
+        #     "Delivery_person_ID",
+        #     "Delivery_person_Age",
+        #     "Delivery_person_Ratings",
+        #     "Restaurant_latitude", "Restaurant_longitude",
+        #     "Delivery_location_latitude", "Delivery_location_longitude",
+        #     "Order_DateTime",
+        #     "Picked_Datetime",
+        #     "Delivered_Datetime"
+        # ]
+        self.identifier_columns = [
             "ID",
-            "Delivery_person_ID",
-            "Delivery_person_Age",
-            "Delivery_person_Ratings",
-            "Restaurant_latitude", "Restaurant_longitude",
-            "Delivery_location_latitude", "Delivery_location_longitude",
+            "Delivery_person_ID"
+        ]
+        self.datetime_columns = [
             "Order_DateTime",
             "Picked_Datetime",
             "Delivered_Datetime"
+        ]
+        self.numerical_columns = [
+            "Delivery_person_Age",
+            "Delivery_person_Ratings",
+            "Restaurant_latitude", "Restaurant_longitude",
+            "Delivery_location_latitude", "Delivery_location_longitude"
+        ]
+        self.ordinal_columns = [
+            "Vehicle_condition",
+            "multiple_deliveries"
         ]
         self.hdfs_path = "hdfs://localhost:9000/user/student/"
         self.historcal_data_path = "assignment_data/historical_data.csv"
@@ -33,9 +52,36 @@ class BatchProcessing:
         self.output_path = "delivery_data/curated_data/"
 
     def data_processing(self, spark_data_frame):
-        ordinary_data = ["multiple_deliveries","Vehicle_condition"]
         
         spark_data_frame = spark_data_frame.dropDuplicates()
+
+        # Trim and lower all categorical columns
+        for column in self.categorical_columns:
+            spark_data_frame = spark_data_frame.withColumn(column, lower(trim(col(column))))
+
+        # Trim and uppercase the Delivery_person_ID
+        spark_data_frame = spark_data_frame.withColumn("Delivery_person_ID", upper(trim(col("Delivery_person_ID"))))
+
+        # Dropping Critical Missing Rows
+        critical_cols = [
+            "Delivery_person_ID",
+            "Order_DateTime",
+            "Picked_Datetime",
+            "Delivered_Datetime",
+        ]
+        
+        for c in critical_cols:
+            spark_data_frame = spark_data_frame.withColumn(
+                c,
+                when(
+                    col(c).isNull() |
+                    (trim(col(c).cast("string")) == "") |
+                    (lower(trim(col(c).cast("string"))).isin("null", "na", "n/a", "nan")),
+                    None
+                ).otherwise(col(c))
+            )
+            
+        spark_data_frame = spark_data_frame.na.drop(subset=critical_cols)
 
         for column in self.categorical_columns:
             spark_data_frame = spark_data_frame.withColumn(
@@ -48,7 +94,7 @@ class BatchProcessing:
                 ).otherwise(col(column))
             )
 
-        for column in ordinary_data:
+        for column in self.ordinal_columns:
             spark_data_frame = spark_data_frame.withColumn(
                 column,
                 when(
@@ -60,15 +106,11 @@ class BatchProcessing:
             )
             
             q1, median_val, q3 = spark_data_frame.filter(col(column).isNotNull()).approxQuantile(column, [0.25, 0.5, 0.75], 0.01)
-        
+
+            # since alrd change to None just use isNull to detect 
             spark_data_frame = spark_data_frame.withColumn(
                 column,
-                when(
-                    col(column).isNull() |
-                    (trim(col(column).cast("string")) == "") |
-                    (lower(trim(col(column).cast("string"))).isin("null", "na", "n/a", "nan")),
-                    median_val
-                ).otherwise(col(column))
+                when(col(column).isNull(), median_val).otherwise(col(column))
             )
 
         mean_val = spark_data_frame.select(avg("Delivery_person_Age")).collect()[0][0]
@@ -81,6 +123,12 @@ class BatchProcessing:
                 (lower(trim(col("Delivery_person_Age").cast("string"))).isin("null", "na", "n/a", "nan")),
                 mean_val
             ).otherwise(col("Delivery_person_Age"))
+        )
+        
+        spark_data_frame = spark_data_frame.filter(
+            (col("Vehicle_condition") >= 0) & (col("Vehicle_condition") <= 3) &
+            (col("Delivery_person_Ratings") >= 0) & (col("Delivery_person_Ratings") <= 5) &
+            (col("multiple_deliveries") >= 0)
         )
         
         spark_data_frame = spark_data_frame.filter(
