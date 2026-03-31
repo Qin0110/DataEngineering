@@ -10,7 +10,7 @@ def run_analytic_queries():
         RETURN d.id AS DriverID, 
                d.rating AS CurrentRating, 
                COUNT(o) AS DifficultDeliveriesCompleted
-        ORDER BY DifficultDeliveriesCompleted DESC;
+        ORDER BY DifficultDeliveriesCompleted DESC, CurrentRating DESC;
     """
     
     
