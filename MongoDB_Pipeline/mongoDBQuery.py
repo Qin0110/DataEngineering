@@ -4,40 +4,30 @@ class DeliveryMetricsQueryService:
 
     def get_vehicle_rating(self):
         pipeline = [
-            {
-                "$group": {
-                    "_id": {
-                        "vehicle": "$type_of_vehicle",
-                    },
-                    "Late_Orders": {
-                        "$sum": {
-                            "$cond": [{"$eq": ["$kafka_topic", "Late_Delivery"]}, 1, 0]
-                        }
-                    },
-                    "Success_Orders": {
-                        "$sum": {
-                            "$cond": [{"$eq": ["$kafka_topic", "Delivered_Succeed"]}, 1, 0]
-                        }
-                    },
+            {"$group": {
+                    "_id": {"vehicle": "$type_of_vehicle"},
+                    "Late_Orders": {"$sum": {"$cond": [{"$eq": ["$deliverable", "Late_Delivery"]}, 1, 0]}},
+                    "Success_Orders": {"$sum": {"$cond": [{"$eq": ["$deliverable", "Delivered_Succeed"]}, 1, 0]}},
                     "Volume": {"$sum": 1},
+                    "Avg_Delivery_Time": {"$avg": "$delivery_time_elapsed"},
+                    "Avg_Rating":        {"$avg": "$rating"}
                 }
             },
-            {
-                "$project": {
+            {"$project": {
                     "_id": 0,
                     "Vehicle": "$_id.vehicle",
                     "Late_Orders": 1,
                     "Success_Orders": 1,
                     "Volume": 1,
+                    "Success_Rate_Percent": {"$round": [{"$multiply": [{"$divide": ["$Success_Orders", "$Volume"]}, 100]},2]},
+                    "Avg_Delivery_Time": {"$round": ["$Avg_Delivery_Time", 1]},
+                    "Avg_Rating":        {"$round": ["$Avg_Rating",2]}
                 }
             },
-            {
-                "$sort": {"Late_Orders": -1}
-            }
+            {"$sort": {"Success_Rate_Percent": -1}}
         ]
-    
-        return list(self.db["delivery_conditions"].aggregate(pipeline))
-
+        return list(self.db["delivery_orders"].aggregate(pipeline))
+        
     def get_food_demand_by_city(self):
         pipeline = [
             {"$group": {
@@ -53,4 +43,4 @@ class DeliveryMetricsQueryService:
             }},
             {"$sort": {"City": 1, "Volume": -1}}
         ]
-        return list(self.db["delivery_conditions"].aggregate(pipeline))
+        return list(self.db["delivery_orders"].aggregate(pipeline))

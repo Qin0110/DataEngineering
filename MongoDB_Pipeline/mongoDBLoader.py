@@ -18,6 +18,11 @@ class CuratedDataToMongoLoader:
     def extract_transform_load(self):
         df = self.spark.read.parquet(self.curated_data_path)
         
+        df = df.withColumn("picked_t", F.to_timestamp(F.trim(F.col("Picked_Datetime")), "yyyy-MM-dd HH:mm:ss"))
+        df = df.withColumn("delivered_t", F.to_timestamp(F.trim(F.col("Delivered_Datetime")), "yyyy-MM-dd HH:mm:ss"))
+        df = df.withColumn("Delivery_Time_Elapsed", F.round((F.unix_timestamp("delivered_t") - F.unix_timestamp("picked_t")) / 60, 2))        
+        df = df.withColumn("deliverable", F.when(F.col("Delivery_Time_Elapsed") > 30, "Late_Delivery").otherwise("Delivered_Succeed"))
+        
         df = df.withColumn("ID", F.trim(F.col("ID")))
         df = df.withColumn("Delivery_person_ID", F.trim(F.col("Delivery_person_ID")))
         df = df.withColumn("City", F.trim(F.col("City")))
@@ -28,41 +33,30 @@ class CuratedDataToMongoLoader:
         df = df.withColumn("Festival", F.trim(F.col("Festival")))
         df = df.withColumn("Delivery_person_Ratings", F.col("Delivery_person_Ratings").cast("float"))
         df = df.withColumn("Delivery_person_Age", F.col("Delivery_person_Age").cast("int"))
-        df = df.withColumn("Delivery_Time_Elapsed", F.col("Delivery_Time_Elapsed").cast("float"))
-        
-        # df = df.filter(F.col("City").isNotNull() & (F.col("City") != "NaN") & (F.col("City") != ""))
-    
-        persons_df = df.groupBy("Delivery_person_ID").agg(
-            F.first("Delivery_person_Age").alias("delivery_person_age"),
-            F.round(F.avg("Delivery_person_Ratings"), 2).alias("delivery_person_ratings"),
+
+        cleaned_df = df.filter(
+            (F.col("ID").isNotNull()) &
+            (F.col("Delivery_Time_Elapsed").isNotNull()) &
+            (F.col("City") != "Unknown") &
+            (~F.col("Delivery_person_Ratings").isin(["NaN", "nan", ""])) 
         )
-        
-        persons_df = persons_df.select(
-            F.col("Delivery_person_ID").alias("_id"),
-            F.col("delivery_person_age"),
-            F.col("delivery_person_ratings")
-        )
-    
-        persons_df.write.format("mongodb") \
-            .option("spark.mongodb.connection.uri", self.mongodb_uri) \
-            .option("spark.mongodb.database", self.database_name) \
-            .option("spark.mongodb.collection", "delivery_persons") \
-            .mode("overwrite").save()
-    
-        conditions_df = df.select(
+
+        orders_df = cleaned_df.select(
             F.col("ID").alias("_id"),
-            F.col("Delivery_person_ID").alias("delivery_person_id"), 
+            F.col("Delivery_person_ID").alias("delivery_person_id"),
             F.col("City").alias("city"),
             F.col("Road_traffic_density").alias("road_traffic_density"),
             F.col("Type_of_order").alias("type_of_order"),
             F.col("Type_of_vehicle").alias("type_of_vehicle"),
-            F.col("kafka_topic").alias("kafka_topic")
+            F.col("deliverable"),            
+            F.col("Delivery_Time_Elapsed").cast("float").alias("delivery_time_elapsed"),
+            F.col("Delivery_person_Ratings").cast("float").alias("rating")
         )
-            
-        conditions_df.write.format("mongodb") \
+        
+        orders_df.write.format("mongodb") \
             .option("spark.mongodb.connection.uri", self.mongodb_uri) \
             .option("spark.mongodb.database", self.database_name) \
-            .option("spark.mongodb.collection", "delivery_conditions") \
+            .option("spark.mongodb.collection", "delivery_orders") \
             .mode("overwrite").save()
-    
+        
         self.spark.stop()
