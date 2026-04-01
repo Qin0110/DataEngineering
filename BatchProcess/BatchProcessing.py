@@ -73,7 +73,7 @@ class BatchProcessing:
                     col(column).isNull() |
                     (trim(col(column)) == "") |
                     (lower(trim(col(column))).isin("null", "na", "n/a", "nan")),
-                    "Unknown"
+                    "unknown"
                 ).otherwise(col(column))
             )
 
@@ -85,7 +85,7 @@ class BatchProcessing:
                     (trim(col(column).cast("string")) == "") |
                     (lower(trim(col(column).cast("string"))).isin("null", "na", "n/a", "nan")),
                     None
-                ).otherwise(col(column))            
+                ).otherwise(col(column)).cast("integer")            
             )
             
             q1, median_val, q3 = spark_data_frame.filter(col(column).isNotNull()).approxQuantile(column, [0.25, 0.5, 0.75], 0.01)

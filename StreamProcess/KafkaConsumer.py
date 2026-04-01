@@ -84,7 +84,7 @@ class SparkKafkaConsumer:
                     col(column).isNull() | 
                     (trim(col(column)) == "") | 
                     (lower(trim(col(column))).isin("null", "na", "n/a", "nan")),
-                    "Unknown"
+                    "unknown"
                 ).otherwise(col(column))
             )
 
