@@ -27,7 +27,7 @@ def run_loader():
             "weather": row["Weatherconditions"],
             "traffic": row["Road_traffic_density"],
             "time_elapsed": row["Delivery_Time_Elapsed"], 
-            "status": "DELIVERED_SUCCEED" if row["kafka_topic"] is None else str(row["kafka_topic"]).upper(),
+            "status": "Late_delivery" if row["Delivery_Time_Elapsed"] is not None and row["Delivery_Time_Elapsed"] > 30 else "Delivered_succeed",
             "order_type": row["Type_of_order"],
             "rest_lat": row["Restaurant_latitude"],
             "rest_long": row["Restaurant_longitude"],

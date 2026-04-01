@@ -8,8 +8,9 @@ def run_analytic_queries():
         WITH d, AVG(toFloat(rel.customer_rating)) AS OverallAverage
         
         MATCH (d)-[:DELIVERED]->(o:Order)
-        WHERE o.weather IN ['conditions Stormy', 'conditions Sandstorms']
-        AND o.status = 'DELIVERED_SUCCEED' 
+        WHERE toLower(o.weather) IN ['conditions stormy', 'conditions sandstorms']
+        AND toLower(o.status) = 'delivered_succeed' 
+        
         WITH d.id AS DriverID, 
              ROUND(OverallAverage, 1) AS CurrentRating, 
              COUNT(o) AS DifficultDeliveriesCompleted
@@ -25,7 +26,7 @@ def run_analytic_queries():
         WITH r.latitude AS RestaurantLat, 
              r.longitude AS RestaurantLong, 
              COUNT(o) AS TotalPickups, 
-             SUM(CASE WHEN o.status = 'LATE_DELIVERY' THEN 1 ELSE 0 END) AS LatePickups,
+             SUM(CASE WHEN o.status = 'Late_delivery' THEN 1 ELSE 0 END) AS LatePickups,
              AVG(o.time_elapsed) AS AvgDeliveryMinutes
         WHERE TotalPickups > 30
         RETURN RestaurantLat, RestaurantLong, TotalPickups, LatePickups, 
@@ -33,6 +34,8 @@ def run_analytic_queries():
                ROUND(AvgDeliveryMinutes, 2) AS AvgDeliveryMinutes
         ORDER BY LatePickupPercentage DESC
         LIMIT 20;
+
+
     """
     
     with get_db_connection() as driver:
