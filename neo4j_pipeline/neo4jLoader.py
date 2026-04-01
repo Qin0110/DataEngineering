@@ -66,7 +66,7 @@ def run_loader():
         MERGE (r:Restaurant {id: location_id})
         SET r.latitude = data.rest_lat, r.longitude = data.rest_long
         
-        // RELATIONSHIPS
+        
         MERGE (d)-[rel:DELIVERED]->(o)
         SET rel.customer_rating = data.rating
         
