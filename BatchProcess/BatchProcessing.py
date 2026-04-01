@@ -72,7 +72,7 @@ class BatchProcessing:
                 when(
                     col(column).isNull() |
                     (trim(col(column)) == "") |
-                    (lower(trim(col(column))).isin("null", "na", "n/a", "nan")),
+                    (lower(trim(col(column))).isin("null", "na", "n/a", "nan","condition nan")),
                     "unknown"
                 ).otherwise(col(column))
             )
