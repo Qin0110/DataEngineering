@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, trim, lower, when, avg, round
+from pyspark.sql.functions import col, trim, lower, when, avg, round, upper
 from BatchReport import DeliveryReportGenerator
 
 class BatchProcessing:
