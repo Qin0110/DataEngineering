@@ -1,12 +1,10 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, trim, lower, when, avg, upper
+from pyspark.sql.functions import col, trim, lower, when, avg, round
 from BatchReport import DeliveryReportGenerator
 
 class BatchProcessing:
     def __init__(self):
         self.spark = SparkSession.builder.appName("Assignment").getOrCreate()
-        # self.ordinal_columns = []
-        # self.nominal_columns = []
         self.categorical_columns = [
             "Weatherconditions",
             "Road_traffic_density",
@@ -15,17 +13,6 @@ class BatchProcessing:
             "Festival",
             "City"
         ]
-        # self.numerical_columns = [
-        #     "ID",
-        #     "Delivery_person_ID",
-        #     "Delivery_person_Age",
-        #     "Delivery_person_Ratings",
-        #     "Restaurant_latitude", "Restaurant_longitude",
-        #     "Delivery_location_latitude", "Delivery_location_longitude",
-        #     "Order_DateTime",
-        #     "Picked_Datetime",
-        #     "Delivered_Datetime"
-        # ]
         self.identifier_columns = [
             "ID",
             "Delivery_person_ID"
@@ -52,24 +39,20 @@ class BatchProcessing:
         self.output_path = "delivery_data/curated_data/"
 
     def data_processing(self, spark_data_frame):
-        
         spark_data_frame = spark_data_frame.dropDuplicates()
 
-        # Trim and lower all categorical columns
         for column in self.categorical_columns:
             spark_data_frame = spark_data_frame.withColumn(column, lower(trim(col(column))))
 
-        # Trim and uppercase the Delivery_person_ID
         spark_data_frame = spark_data_frame.withColumn("Delivery_person_ID", upper(trim(col("Delivery_person_ID"))))
 
-        # Dropping Critical Missing Rows
         critical_cols = [
             "Delivery_person_ID",
             "Order_DateTime",
             "Picked_Datetime",
             "Delivered_Datetime",
         ]
-        
+
         for c in critical_cols:
             spark_data_frame = spark_data_frame.withColumn(
                 c,
@@ -80,7 +63,7 @@ class BatchProcessing:
                     None
                 ).otherwise(col(c))
             )
-            
+
         spark_data_frame = spark_data_frame.na.drop(subset=critical_cols)
 
         for column in self.categorical_columns:
@@ -106,8 +89,7 @@ class BatchProcessing:
             )
             
             q1, median_val, q3 = spark_data_frame.filter(col(column).isNotNull()).approxQuantile(column, [0.25, 0.5, 0.75], 0.01)
-
-            # since alrd change to None just use isNull to detect 
+        
             spark_data_frame = spark_data_frame.withColumn(
                 column,
                 when(col(column).isNull(), median_val).otherwise(col(column))
@@ -124,7 +106,7 @@ class BatchProcessing:
                 mean_val
             ).otherwise(col("Delivery_person_Age"))
         )
-        
+
         spark_data_frame = spark_data_frame.filter(
             (col("Vehicle_condition") >= 0) & (col("Vehicle_condition") <= 3) &
             (col("Delivery_person_Ratings") >= 0) & (col("Delivery_person_Ratings") <= 5) &
@@ -136,11 +118,16 @@ class BatchProcessing:
             (col("Delivered_Datetime") >= col("Picked_Datetime"))
         )
 
+        spark_data_frame = spark_data_frame.withColumn(
+            "Delivery_Time_Elapsed",
+            round((col("Delivered_Datetime").cast("long") - col("Picked_Datetime").cast("long")) / 60, 2)
+        )
+
         spark_data_frame = spark_data_frame.filter(
-            (col("Restaurant_latitude") >= -90) & (col("Restaurant_latitude") <= 90) &
-            (col("Restaurant_longitude") >= -180) & (col("Restaurant_longitude") <= 180) &
-            (col("Delivery_location_latitude") >= -90) & (col("Delivery_location_latitude") <= 90) &
-            (col("Delivery_location_longitude") >= -180) & (col("Delivery_location_longitude") <= 180)
+            (col("Restaurant_latitude") != 0) & (col("Restaurant_latitude") >= -90) & (col("Restaurant_latitude") <= 90) &
+            (col("Restaurant_longitude") != 0) & (col("Restaurant_longitude") >= -180) & (col("Restaurant_longitude") <= 180) &
+            (col("Delivery_location_latitude") != 0) & (col("Delivery_location_latitude") >= -90) & (col("Delivery_location_latitude") <= 90) &
+            (col("Delivery_location_longitude") != 0) & (col("Delivery_location_longitude") >= -180) & (col("Delivery_location_longitude") <= 180)
         )
 
         return spark_data_frame
