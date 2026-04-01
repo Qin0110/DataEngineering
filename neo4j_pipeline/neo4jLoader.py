@@ -27,7 +27,7 @@ def run_loader():
             "weather": row["Weatherconditions"],
             "traffic": row["Road_traffic_density"],
             "time_elapsed": row["Delivery_Time_Elapsed"], 
-            "status": str(row["kafka_topic"]).capitalize(),
+            "status": "DELIVERED_SUCCEED" if row["kafka_topic"] is None else str(row["kafka_topic"]).upper(),
             "order_type": row["Type_of_order"],
             "rest_lat": row["Restaurant_latitude"],
             "rest_long": row["Restaurant_longitude"],
@@ -77,6 +77,7 @@ def run_loader():
     index_queries = [
         "CREATE INDEX FOR (d:DeliveryPerson) ON (d.id);",
         "CREATE INDEX FOR (o:Order) ON (o.id);",
+        "CREATE INDEX FOR (v:Vehicle) ON (v.type);",
         "CREATE INDEX FOR (c:City) ON (c.name);",
         "CREATE INDEX FOR (r:Restaurant) ON (r.id);"
     ]
