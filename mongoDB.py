@@ -1,6 +1,6 @@
-from MongoDB.mongoDBConnection import PyMongoUtils, CONNECTION_STRING
-from MongoDB.mongoDBLoader import CuratedDataToMongoLoader
-from MongoDB.mongoDBQuery import DeliveryMetricsQueryService
+from MongoDB_Pipeline.mongoDBConnection import PyMongoUtils, CONNECTION_STRING
+from MongoDB_Pipeline.mongoDBLoader import CuratedDataToMongoLoader
+from MongoDB_Pipeline.mongoDBQuery import DeliveryMetricsQueryService
 
 def run_pipeline():
     print("=========================================")
