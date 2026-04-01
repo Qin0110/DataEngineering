@@ -4,13 +4,19 @@ from neo4j_pipeline.neo4jConnection import get_db_connection, NEO4J_USERNAME
 def run_analytic_queries():
     print("Starting Neo4j Analytics...")
     query_1 = """
-        MATCH (d:DeliveryPerson)-[:DELIVERED]->(o:Order)
-        WHERE o.status = 'Delivered_succeed' 
-          AND o.weather IN ['conditions Stormy', 'conditions Sandstorms']
-        RETURN d.id AS DriverID, 
-               d.rating AS CurrentRating, 
-               COUNT(o) AS DifficultDeliveriesCompleted
-        ORDER BY DifficultDeliveriesCompleted DESC, CurrentRating DESC;
+        MATCH (d:DeliveryPerson)-[rel:DELIVERED]->(:Order)
+        WITH d, AVG(toFloat(rel.customer_rating)) AS OverallAverage
+        
+        MATCH (d)-[:DELIVERED]->(o:Order)
+        WHERE o.weather IN ['conditions Stormy', 'conditions Sandstorms']
+        AND o.status = 'Delivered_succeed' 
+        WITH d.id AS DriverID, 
+             ROUND(OverallAverage, 1) AS CurrentRating, 
+             COUNT(o) AS DifficultDeliveriesCompleted
+             
+        RETURN DriverID, CurrentRating, DifficultDeliveriesCompleted
+        ORDER BY DifficultDeliveriesCompleted DESC, CurrentRating DESC
+        LIMIT 10;
     """
     
     

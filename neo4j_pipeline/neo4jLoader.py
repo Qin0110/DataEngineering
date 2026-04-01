@@ -47,7 +47,7 @@ def run_loader():
         UNWIND $batch AS data
         
         MERGE (d:DeliveryPerson {id: data.person_id})
-        SET d.age = data.age, d.rating = data.rating
+        SET d.age = data.age
         
         MERGE (o:Order {id: data.order_id})
         SET o.date = data.date, 
@@ -67,7 +67,9 @@ def run_loader():
         SET r.latitude = data.rest_lat, r.longitude = data.rest_long
         
         // RELATIONSHIPS
-        MERGE (d)-[:DELIVERED]->(o)
+        MERGE (d)-[rel:DELIVERED]->(o)
+        SET rel.customer_rating = data.rating
+        
         MERGE (o)-[:DELIVERED_USING]->(v) 
         MERGE (o)-[:DELIVERED_IN]->(c)
         MERGE (o)-[:PICKED_UP_FROM]->(r)
