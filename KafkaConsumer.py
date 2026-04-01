@@ -77,8 +77,16 @@ class SparkKafkaConsumer:
             "Festival", 
             "City"
         ]
-        parsed_df = parsed_df.fillna("Unknown", subset=non_critical_string_cols)
-
+        for column in non_critical_string_cols:
+            parsed_df = parsed_df.withColumn(
+                column,
+                when(
+                    col(column).isNull() | 
+                    (trim(col(column)) == "") | 
+                    (lower(trim(col(column))).isin("null", "na", "n/a", "nan")),
+                    "Unknown"
+                ).otherwise(col(column))
+            )
 
         def route_data_to_storage(batch_df, batch_id):
             batch_df.persist() 
