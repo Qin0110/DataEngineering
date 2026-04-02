@@ -40,22 +40,25 @@ def run_pipeline():
         print("-" * 118)
         save_to_csv(vehicle_ratings, "q1_vehicle_success_rate.csv")
 
-    print("\nQUERY 2: Food Demand by City")
-    food_report = query_service.get_food_demand_by_city()
-    if not food_report:
-        print("No food data found.")
+    print("\nQUERY 2: City Food Performance Bottlenecks")
+    performance_report = query_service.get_city_food_performance()
+    
+    if not performance_report:
+        print("No performance data found.")
     else:
-        print("-" * 55)
-        print(f"| {'City':<15} | {'Food Type':<15} | {'Volume':<15} |")
-        print("-" * 55)
-        for record in food_report:
+        print("-" * 78)
+        print(f"| {'City':<15} | {'Food Type':<12} | {'Volume':<8} | {'Late Rate (%)':<15} | {'Avg Time (M)':<12} |")
+        print("-" * 78)
+        for record in performance_report:
             print(
                 f"| {str(record.get('City')):<15} | "
-                f"{str(record.get('FoodType')):<15} | "
-                f"{str(record.get('Volume')):<15} |"
+                f"{str(record.get('FoodType')):<12} | "
+                f"{str(record.get('Volume')):<8} | "
+                f"{str(record.get('Late_Rate_Percent', 0)):<15} | "
+                f"{str(record.get('Avg_Delivery_Time', 0)):<12} |"
             )
-        print("-" * 55)
-        save_to_csv(food_report, "q2_food_demand_by_city.csv")
+        print("-" * 78)
+        save_to_csv(performance_report, "q2_city_food_performance.csv")
 
 def save_to_csv(data, filename):
     if not data:
@@ -77,7 +80,13 @@ def save_to_csv(data, filename):
         df = df[desired_order]
         
     elif "City" in df.columns:
-        desired_order = ["City", "FoodType", "Volume"]
+        desired_order = [
+            "City", 
+            "FoodType", 
+            "Volume", 
+            "Late_Rate_Percent", 
+            "Avg_Delivery_Time"
+        ]
         df = df[desired_order]
 
     os.makedirs("mongoDB_Pipeline", exist_ok =True)
