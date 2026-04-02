@@ -20,12 +20,13 @@ class DeliveryMetricsQueryService:
             {"$project": {
                     "_id": 0,
                     "Vehicle": "$_id.vehicle",
+                    "Volume": 1,
+                    "Avg_Delivery_Time": {"$round": ["$Avg_Delivery_Time", 1]},
+                    "Avg_Rating": {"$round": ["$Avg_Rating",2]},
                     "Late_Orders": 1,
                     "Success_Orders": 1,
                     "Volume": 1,
-                    "Success_Rate_Percent": {"$round": [{"$multiply": [{"$divide": ["$Success_Orders", "$Volume"]}, 100]},2]},
-                    "Avg_Delivery_Time": {"$round": ["$Avg_Delivery_Time", 1]},
-                    "Avg_Rating":        {"$round": ["$Avg_Rating",2]}
+                    "Success_Rate_Percent": {"$round": [{"$multiply": [{"$divide": ["$Success_Orders", "$Volume"]}, 100]},2]}
                 }
             },
             {"$sort": {"Success_Rate_Percent": -1}}
@@ -35,7 +36,7 @@ class DeliveryMetricsQueryService:
     def get_food_demand_by_city(self):
         pipeline = [
             {"$match": {
-                "city": {"$ne": "Unknown"}, 
+                "city": {"$nin": ["Unknown", "unknown", "NaN", "nan", "", None]}
             }},
             {"$group": {
                 "_id": {"city": "$city",

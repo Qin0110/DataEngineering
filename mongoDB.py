@@ -29,7 +29,7 @@ def run_pipeline():
         print("-" * 118)
         for record in vehicle_ratings:
             print(
-                f"| {str(record.get('Vehicle', 'N/A')):<20} | "
+                f"| {str(record.get('Vehicle')):<20} | "
                 f"{str(record.get('Volume', 0)):<8} | "
                   f"{str(record.get('Avg_Delivery_Time')):<12} |"
                 f"{str(record.get('Avg_Rating')):<12} |"
@@ -63,6 +63,22 @@ def save_to_csv(data, filename):
         return
     
     df = pd.DataFrame(data)
+    
+    if "Vehicle" in df.columns:
+        desired_order = [
+            "Vehicle", 
+            "Volume", 
+            "Avg_Delivery_Time", 
+            "Avg_Rating", 
+            "Success_Orders", 
+            "Late_Orders", 
+            "Success_Rate_Percent"
+        ]
+        df = df[desired_order]
+        
+    elif "City" in df.columns:
+        desired_order = ["City", "FoodType", "Volume"]
+        df = df[desired_order]
     
     df.to_csv(filename, index=False)
     
