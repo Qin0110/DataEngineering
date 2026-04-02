@@ -32,27 +32,6 @@ class DeliveryMetricsQueryService:
             {"$sort": {"Success_Rate_Percent": -1}}
         ]
         return list(self.db["delivery_orders"].aggregate(pipeline))
-        
-    def get_food_demand_by_city(self):
-        pipeline = [
-            {"$match": {
-                "city": {"$nin": ["Unknown", "unknown", "NaN", "nan", "", None]}
-            }},
-            {"$group": {
-                "_id": {"city": "$city",
-                        "food_type": "$type_of_order"},
-                "Volume": {"$sum": 1}}
-            },
-            {"$project": {
-                "_id": 0,
-                "City": "$_id.city",
-                "FoodType": "$_id.food_type",
-                "Volume": 1                                        
-            }},
-            {"$sort": {"City": 1, "Volume": -1}}
-        ]
-        return list(self.db["delivery_orders"].aggregate(pipeline))
-
 
     def get_city_food_performance(self):
         pipeline = [
