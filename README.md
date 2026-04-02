@@ -19,6 +19,16 @@ kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 
 kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic Anomaly_Data
 
 
+## Create virtual env
+`pythom -m venv {filename}`
+
+cd {filename}
+
+## Install env
+`pip install requirements.txt`
+
+## Activate environemnt
+`source {filename}/bin/activate`
 
 ## ***read parquet file from HDFS:***
 
@@ -32,8 +42,9 @@ hdfs_df = spark.read.parquet("hdfs://localhost:9000/user/student/delivery_data/c
 
 ## RUN FILE (each run on different terminal simultaneously)
 ***Ingestion + Streaming + StreamProcess***
-`python StreamProcess/KafkaConsumer.py`
-`python StreamProcess/AnomalyDataConsumer.py`
+*Run consumer first, wait for the messages finished pop up, then run Producer.*
+`python StreamProcess/KafkaConsumer.py` \n
+`python StreamProcess/AnomalyDataConsumer.py` \n
 `python Ingestion/Producer.py`
 
 ***BatchProcess***
