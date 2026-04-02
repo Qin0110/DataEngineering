@@ -38,14 +38,6 @@ Food Delivery Performance Tracker
 │   ├── neo4jQueries.py
 │   ├── q1_reliable_drivers.csv
 │   └── q2_restaurant_bottlenecks.csv
-├── data/
-│   ├── DataPreparation.ipynb
-│   ├── DataPreparation.py
-│   ├── dataset.csv
-│   ├── historical_data.csv
-│   ├── streaming_dataset.csv
-│   ├── test.csv
-│   └── train.csv
 └── test/
     └── DE_batch_Processing.ipynb
 
