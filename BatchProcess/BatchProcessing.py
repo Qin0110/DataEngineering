@@ -107,6 +107,16 @@ class BatchProcessing:
             ).otherwise(col("Delivery_person_Age"))
         )
 
+        spark_data_frame = spark_data_frame.withColumn(
+            "Delivery_person_Ratings",
+            when(
+                col("Delivery_person_Ratings").isNull() |
+                (trim(col("Delivery_person_Ratings").cast("string")) == "") |
+                (lower(trim(col("Delivery_person_Ratings").cast("string"))).isin("null", "na", "n/a", "nan")),
+                None
+            ).otherwise(col("Delivery_person_Ratings")).cast("double")
+        )
+
         spark_data_frame = spark_data_frame.filter(
             (col("Vehicle_condition") >= 0) & (col("Vehicle_condition") <= 3) &
             (col("Delivery_person_Ratings") >= 0) & (col("Delivery_person_Ratings") <= 5) &
@@ -121,6 +131,11 @@ class BatchProcessing:
         spark_data_frame = spark_data_frame.withColumn(
             "Delivery_Time_Elapsed",
             round((col("Delivered_Datetime").cast("long") - col("Picked_Datetime").cast("long")) / 60, 2)
+        )
+
+        spark_data_frame = spark_data_frame.withColumn(
+            "Pickup_Delay_Minutes",
+            round((col("Picked_Datetime").cast("long") - col("Order_DateTime").cast("long")) / 60 , 2)
         )
 
         spark_data_frame = spark_data_frame.filter(
