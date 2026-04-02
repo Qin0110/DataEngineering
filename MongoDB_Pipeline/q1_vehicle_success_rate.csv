@@ -1,0 +1,4 @@
+Vehicle,Volume,Avg_Delivery_Time,Avg_Rating,Success_Orders,Late_Orders,Success_Rate_Percent
+scooter,5083,27.3,4.65,3001,2082,59.04
+electric_scooter,1160,27.3,4.66,680,480,58.62
+motorcycle,8791,27.5,4.63,5090,3701,57.9

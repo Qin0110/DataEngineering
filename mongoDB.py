@@ -79,10 +79,13 @@ def save_to_csv(data, filename):
     elif "City" in df.columns:
         desired_order = ["City", "FoodType", "Volume"]
         df = df[desired_order]
+
+    os.makedirs("mongoDB_Pipeline", exist_ok =True)
+    filepath = os.path.join("MongoDB_Pipeline", filename)
     
-    df.to_csv(filename, index=False)
+    df.to_csv(filepath, index=False)
     
-    print(f"Saved {len(df)} records to {filename}")
+    print(f"Saved {len(df)} records to {filepath}")
 
 if __name__ == "__main__":
     run_pipeline()

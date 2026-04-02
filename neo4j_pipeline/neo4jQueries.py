@@ -44,7 +44,7 @@ def run_analytic_queries():
         df1 = pd.DataFrame([r.data() for r in records_1])
         df1.index = df1.index + 1
         print(df1.head(10))
-        df1.to_csv('q1_reliable_drivers.csv', index=False)
+        df1.to_csv('neo4j_pipeline/q1_reliable_drivers.csv', index=False)
         print("-> Saved as 'q1_reliable_drivers.csv'")
 
         print("\n---------------------------------- Query 2: Restaurant Bottlenecks -----------------------------------")
@@ -52,7 +52,7 @@ def run_analytic_queries():
         df2 = pd.DataFrame([r.data() for r in records_2])
         df2.index = df2.index + 1
         print(df2.head(10))
-        df2.to_csv("q2_restaurant_bottlenecks.csv", index=False)
+        df2.to_csv("neo4j_pipeline/q2_restaurant_bottlenecks.csv", index=False)
         print("-> Saved as 'q2_restaurant_bottlenecks.csv'")
         
     print("Database connection closed. Analytics complete!")

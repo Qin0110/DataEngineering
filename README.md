@@ -1,3 +1,57 @@
+===========================================================
+BMDS2013 Data Engineering Assignment – readme.txt
+===========================================================
+
+Team Reference: G4-4
+Submission Date: 3/4/2026
+
+-----------------------------------------------------------
+1. Project Title:
+-----------------------------------------------------------
+Food Delivery Performance Tracker
+
+-----------------------------------------------------------
+2. Project Folder Structure: 
+-----------------------------------------------------------
+├── requirements.txt
+├── README.md
+├── mongoDB.py
+├── neo4jMain.py
+├── BatchProcess/
+│   ├── BatchProcessing.py
+│   └── BatchReport.py
+├── Ingestion/
+│   └── Producer.py
+├── StreamProcess/
+│   ├── AnomalyDataConsumer.py
+│   └── KafkaConsumer.py
+├── MongoDB_Pipeline/
+│   ├── mongoDBConnection.py
+│   ├── mongoDBLoader.py
+│   ├── mongoDBQuery.py
+│   ├── q1_vehicle_success_rate.csv
+│   └── q2_food_demand_by_city.csv
+├── neo4j_pipeline/
+│   ├── neo4jConnection.py
+│   ├── neo4jCredentials.py
+│   ├── neo4jLoader.py
+│   ├── neo4jQueries.py
+│   ├── q1_reliable_drivers.csv
+│   └── q2_restaurant_bottlenecks.csv
+├── data/
+│   ├── DataPreparation.ipynb
+│   ├── DataPreparation.py
+│   ├── dataset.csv
+│   ├── historical_data.csv
+│   ├── streaming_dataset.csv
+│   ├── test.csv
+│   └── train.csv
+└── test/
+    └── DE_batch_Processing.ipynb
+
+-----------------------------------------------------------
+3. Setup Instructions:
+-----------------------------------------------------------
 ## CHECK HDFS LOCATION
 linux command: `hdfs getconf -confKey fs.defaultFS`
 

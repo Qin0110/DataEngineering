@@ -1,0 +1,13 @@
+City,FoodType,Volume
+metropolitian,meal,2867
+metropolitian,snack,2860
+metropolitian,buffet,2818
+metropolitian,drinks,2722
+semi-urban,snack,18
+semi-urban,drinks,11
+semi-urban,buffet,9
+semi-urban,meal,7
+urban,snack,844
+urban,buffet,842
+urban,drinks,835
+urban,meal,823
