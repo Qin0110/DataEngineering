@@ -89,7 +89,7 @@ def save_to_csv(data, filename):
         ]
         df = df[desired_order]
 
-    os.makedirs("mongoDB_Pipeline", exist_ok =True)
+    os.makedirs("MongoDB_Pipeline", exist_ok =True)
     filepath = os.path.join("MongoDB_Pipeline", filename)
     
     df.to_csv(filepath, index=False)
