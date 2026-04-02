@@ -22,7 +22,7 @@ class DataStreamer:
                 read_csv = csv.DictReader(data_entry)
                 
                 for row in read_csv:
-                    # if (count < 100):
+                    if (count < 1000):
                         is_anomaly, anomaly_msg = self.anomaly_data_handling(row)
                         
                         if is_anomaly:
