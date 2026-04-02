@@ -40,7 +40,7 @@ def run_pipeline():
         print("-" * 118)
         save_to_csv(vehicle_ratings, "q1_vehicle_success_rate.csv")
 
-    print("\nQUERY 2: City Food Performance Bottlenecks")
+    print("\nQUERY 2: Late Delivery Rates by City & Food Type")
     performance_report = query_service.get_city_food_performance()
     
     if not performance_report:
