@@ -42,7 +42,6 @@ class SparkKafkaConsumer:
             StructField("Delivery_Time_Elapsed", StringType(), True)
         ])
 
-        # .option("startingOffsets", "earliest") \ add it back future
         streams_df = self.spark.readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", self.bootstrap_server) \
