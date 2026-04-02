@@ -25,7 +25,7 @@ kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 
 cd {filename}
 
 ## Install env
-`pip install requirements.txt`
+`pip install -r requirements.txt`
 
 ## Activate environemnt
 `source {filename}/bin/activate`
