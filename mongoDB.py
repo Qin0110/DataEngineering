@@ -1,6 +1,8 @@
 from MongoDB_Pipeline.mongoDBConnection import PyMongoUtils, CONNECTION_STRING
 from MongoDB_Pipeline.mongoDBLoader import CuratedDataToMongoLoader
 from MongoDB_Pipeline.mongoDBQuery import DeliveryMetricsQueryService
+import pandas as pd
+import os
 
 def run_pipeline():
     print("=========================================")
@@ -36,6 +38,7 @@ def run_pipeline():
                 f"{record.get('Success_Rate_Percent'):<17} | "
             )
         print("-" * 118)
+        save_to_csv(vehicle_ratings, "q1_vehicle_success_rate.csv")
 
     print("\nQUERY 2: Food Demand by City")
     food_report = query_service.get_food_demand_by_city()
@@ -52,6 +55,18 @@ def run_pipeline():
                 f"{str(record.get('Volume')):<15} |"
             )
         print("-" * 55)
+        save_to_csv(food_report, "q2_food_demand_by_city.csv")
+
+def save_to_csv(data, filename):
+    if not data:
+        print(f"No data to save for {filename}")
+        return
+    
+    df = pd.DataFrame(data)
+    
+    df.to_csv(filename, index=False)
+    
+    print(f"Saved {len(df)} records to {filename}")
 
 if __name__ == "__main__":
     run_pipeline()
