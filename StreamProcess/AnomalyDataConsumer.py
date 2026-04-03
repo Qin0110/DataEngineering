@@ -1,3 +1,5 @@
+# Author: Lee Ka Qin
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql.functions import col, from_json
