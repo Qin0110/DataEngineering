@@ -1,3 +1,5 @@
+# Author: Lee Ka Qin
+
 from kafka import KafkaProducer
 from datetime import datetime
 import os
