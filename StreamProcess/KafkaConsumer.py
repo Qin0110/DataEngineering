@@ -1,3 +1,5 @@
+# Author: Lee Ka Qin
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType, DateType, TimestampType
 from pyspark.sql.functions import col, from_json, trim, to_date, to_timestamp, concat_ws, when, lower
